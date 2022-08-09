@@ -18,6 +18,7 @@ public class UnzipUtility {
         return contents;
     }
     
+    // Copy files to temp
     public String[] copyFilesToTemp(String directory){
         String[] files = getFiles(directory);
         return files;
