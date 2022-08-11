@@ -87,6 +87,20 @@
          </list>
       </hash>
    </hash>
+   <hash n="oracle.jdeveloper.runner.RunConfigurations">
+      <hash n="runConfigurationDefinitions">
+         <hash n="With Args">
+            <value n="custom" v="false"/>
+            <value n="name" v="With Args"/>
+            <value n="programArguments" v="D:\Sample_files\"/>
+            <value n="targetURL"/>
+         </hash>
+      </hash>
+      <list n="runConfigurationList">
+         <string v="Default"/>
+         <string v="With Args"/>
+      </list>
+   </hash>
    <hash n="oracle.jdevimpl.config.JProjectPaths">
       <url n="outputDirectory" path="classes/"/>
    </hash>
