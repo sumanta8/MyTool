@@ -1,4 +1,4 @@
-package com.sumanta.mytool.utility;
+package com.ent.mytool.utility;
 
 
 public final class Constants {

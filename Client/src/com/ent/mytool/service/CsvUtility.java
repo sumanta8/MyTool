@@ -1,6 +1,6 @@
-package com.sumanta.mytool.service;
+package com.ent.mytool.service;
 
-import com.sumanta.mytool.utility.Constants;
+import com.ent.mytool.utility.Constants;
 
 import java.io.BufferedReader;
 import java.io.File;
