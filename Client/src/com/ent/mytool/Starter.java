@@ -55,17 +55,28 @@ public class Starter {
                 List<List<String>> data = csvUtility.readCsv(outputPath);
                 System.out.println((data.size()-1) + " records found.");
                 
-                String[] contents = outputPath.toFile().list();
-                for(String filePath: contents){
-                    if(filePath.contains(Constants.METADATA_FILENAME) || new File(filePath).isDirectory()){
-                        // Ignore if it is metadata file or a directory
-                    }
-                    else{
-                        String base64Content = base64Utility.encode(Paths.get(outputPath + "\\" + filePath));
-                        System.out.println("Reading " + filePath + "==============================");
+                for(List<String> row: data){
+                    String fileName = row.get(Constants.METADATA_FILENAME_INDEX) + "." + row.get(Constants.METADATA_EXTENSION_INDEX);
+                    // Getting the file by creating object of File class
+                    File f = new File(outputPath + "\\" + fileName);
+             
+                    // Checking if the specified file exists or not
+                    if (f.exists()){
+             
+                        // Show if the file exists
+                        System.out.println(fileName + " exists");
+                        String base64Content = base64Utility.encode(Paths.get(outputPath + "\\" + fileName));
+                        System.out.println("Reading " + fileName + "==============================");
                         System.out.println(base64Content);
                     }
+                    else
+                    {
+                        // Show if the file does not exists
+                        System.out.println(fileName + " does not Exists");
+                    }
                 }
+                
+                //String[] contents = outputPath.toFile().list();
             }
             
             

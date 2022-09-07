@@ -11,4 +11,7 @@ public final class Constants {
     public static final String ZIP_EXTRACTED_FOLDER_NAME = "Extracted";
     public static final String METADATA_FILENAME = "Metadata.csv";
     public static final String COMMA_DELIMITER = ",";
+    
+    public static final int METADATA_FILENAME_INDEX = 8;    
+    public static final int METADATA_EXTENSION_INDEX = 7;
 }
