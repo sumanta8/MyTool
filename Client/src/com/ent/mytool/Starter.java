@@ -55,7 +55,8 @@ public class Starter {
                 List<List<String>> data = csvUtility.readCsv(outputPath);
                 System.out.println((data.size()-1) + " records found.");
                 
-                for(List<String> row: data){
+                for(int i =1; i < data.size(); i++){
+                    List<String> row = data.get(i);
                     String fileName = row.get(Constants.METADATA_FILENAME_INDEX) + "." + row.get(Constants.METADATA_EXTENSION_INDEX);
                     // Getting the file by creating object of File class
                     File f = new File(outputPath + "\\" + fileName);
