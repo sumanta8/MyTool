@@ -1,6 +1,6 @@
-package com.sumanta.mytool.service;
+package com.ent.mytool.service;
 
-import com.sumanta.mytool.utility.Constants;
+import com.ent.mytool.utility.Constants;
 
 import java.awt.Desktop;
 import java.awt.Desktop.Action;
@@ -25,10 +25,14 @@ public class UnzipUtility {
     public UnzipUtility() {
         super();
     }
-    
+
     private String folderName = "";
     
-    private String[] getFiles(String directory){
+    public String getFolderName(){
+        return folderName;
+    }
+
+    private String[] getFiles(String directory) {
         //Creating a File object for directory
         File directoryPath;
         directoryPath = new File(directory);
@@ -36,147 +40,148 @@ public class UnzipUtility {
         String contents[] = directoryPath.list();
         return contents;
     }
-    
+
     // Copy files to temp
-    public ArrayList<Path> copyFilesToTemp(String directory){
+    public ArrayList<Path> copyFilesToTemp(String directory) {
         ArrayList<Path> filePaths = new ArrayList<Path>();
-        
+
         SimpleDateFormat formatter;
         formatter = new SimpleDateFormat(Constants.DATE_TIME_FORMAT);
         String tmpdir = System.getProperty("java.io.tmpdir");
         folderName = tmpdir + formatter.format(new Date()) + "\\";
-        
+
         // Create directory
         new File(folderName).mkdir();
-        
+
         String targetFolderName = folderName + Constants.ZIP_INPUT_FOLDER_NAME + "\\";
-        
+
         // Create directory
         new File(targetFolderName).mkdir();
-        
+
         Path sourceDirectory = Paths.get(directory);
         Path targetDirectory = Paths.get(targetFolderName);
-        try{
+        try {
             filePaths = copy(sourceDirectory, targetDirectory);
-        }catch (IOException ioe){
+        } catch (IOException ioe) {
             // TODO: Handle exception
-        }catch (Exception ex){
+        } catch (Exception ex) {
             // TODO: Handle exception
         }
         return filePaths;
     }
-    
+
     // Copy source to destiunation recursively
     private ArrayList<Path> copy(Path sourceDirectory, Path targetDirectory) throws IOException {
         ArrayList<Path> filePaths = new ArrayList<Path>();
-        Files.walk(sourceDirectory)
-             .forEach(sourcePath -> {
-                 Path targetPath = targetDirectory.resolve(sourceDirectory.relativize(sourcePath));
-                 System.out.printf("Copying %s to %s%n", sourcePath, targetPath);
-                 try{
-                    Files.copy(sourcePath, targetPath, StandardCopyOption.REPLACE_EXISTING);
-                    filePaths.add(targetPath);
-                 }catch (IOException ioe){
-                     // TODO: Handle exception
-                 }
-             });
+        Files.walk(sourceDirectory).forEach(sourcePath -> {
+            Path targetPath = targetDirectory.resolve(sourceDirectory.relativize(sourcePath));
+            System.out.printf("Copying %s to %s%n", sourcePath, targetPath);
+            try {
+                Files.copy(sourcePath, targetPath, StandardCopyOption.REPLACE_EXISTING);
+                filePaths.add(targetPath);
+            } catch (IOException ioe) {
+                // TODO: Handle exception
+            }
+        });
         return filePaths;
     }
-    
-    public void extractFiles(ArrayList<Path> filePaths){
+
+    public ArrayList<Path> extractFiles(ArrayList<Path> filePaths) {
+        ArrayList<Path> outputPaths = new ArrayList<Path>();
         String outputFolder = folderName + Constants.ZIP_EXTRACTED_FOLDER_NAME + "\\";
-        
+
         // Create directory
         new File(outputFolder).mkdir();
-        
-        for(Path filePath: filePaths){
-            String fileName = getFileName(filePath);        
+
+        for (Path filePath : filePaths) {
+            String fileName = getFileName(filePath);
             String targetFolderName = outputFolder + "\\" + fileName;
-        
+
             // Create directory
             new File(targetFolderName).mkdir();
-            
+
             Path targetPath = Paths.get(targetFolderName);
-            
+
             System.out.printf("Extracting %s to %s%n", fileName, targetPath);
             try {
                 unzipFolder(filePath, targetPath);
+                outputPaths.add(targetPath);
             } catch (IOException e) {
                 // TODO: Handle exception
             }
         }
+        return outputPaths;
     }
-    
-    private String getFileName(Path filePath){
+
+    private String getFileName(Path filePath) {
         String fileName = filePath.getFileName().toString();
-        if(!fileName.contains("."))
+        if (!fileName.contains("."))
             System.out.println("File Name = " + fileName);
         else {
-            fileName = fileName.substring(0,fileName.lastIndexOf("."));
+            fileName = fileName.substring(0, fileName.lastIndexOf("."));
             System.out.println("File Name = " + fileName);
         }
         return fileName;
     }
-    
+
     private void unzipFolder(Path source, Path target) throws IOException {
 
-            try (ZipInputStream zis = new ZipInputStream(new FileInputStream(source.toFile()))) {
+        try (ZipInputStream zis = new ZipInputStream(new FileInputStream(source.toFile()))) {
 
-                // list files in zip
-                ZipEntry zipEntry = zis.getNextEntry();
+            // list files in zip
+            ZipEntry zipEntry = zis.getNextEntry();
 
-                while (zipEntry != null) {
+            while (zipEntry != null) {
 
-                    boolean isDirectory = false;
-                    // example 1.1
-                    // some zip stored files and folders separately
-                    // e.g data/
-                    //     data/folder/
-                    //     data/folder/file.txt
-                    if (zipEntry.getName().endsWith(File.separator)) {
-                        isDirectory = true;
+                boolean isDirectory = false;
+                // example 1.1
+                // some zip stored files and folders separately
+                // e.g data/
+                //     data/folder/
+                //     data/folder/file.txt
+                if (zipEntry.getName().endsWith(File.separator)) {
+                    isDirectory = true;
+                }
+
+                Path newPath = zipSlipProtect(zipEntry, target);
+
+                if (isDirectory) {
+                    Files.createDirectories(newPath);
+                } else {
+
+                    // example 1.2
+                    // some zip stored file path only, need create parent directories
+                    // e.g data/folder/file.txt
+                    if (newPath.getParent() != null) {
+                        if (Files.notExists(newPath.getParent())) {
+                            Files.createDirectories(newPath.getParent());
+                        }
                     }
 
-                    Path newPath = zipSlipProtect(zipEntry, target);
+                    // copy files, nio
+                    Files.copy(zis, newPath, StandardCopyOption.REPLACE_EXISTING);
 
-                    if (isDirectory) {
-                        Files.createDirectories(newPath);
-                    } else {
-
-                        // example 1.2
-                        // some zip stored file path only, need create parent directories
-                        // e.g data/folder/file.txt
-                        if (newPath.getParent() != null) {
-                            if (Files.notExists(newPath.getParent())) {
-                                Files.createDirectories(newPath.getParent());
-                            }
-                        }
-
-                        // copy files, nio
-                        Files.copy(zis, newPath, StandardCopyOption.REPLACE_EXISTING);
-
-                        // copy files, classic
-                        /*try (FileOutputStream fos = new FileOutputStream(newPath.toFile())) {
+                    // copy files, classic
+                    /*try (FileOutputStream fos = new FileOutputStream(newPath.toFile())) {
                             byte[] buffer = new byte[1024];
                             int len;
                             while ((len = zis.read(buffer)) > 0) {
                                 fos.write(buffer, 0, len);
                             }
                         }*/
-                    }
-
-                    zipEntry = zis.getNextEntry();
-
                 }
-                zis.closeEntry();
+
+                zipEntry = zis.getNextEntry();
 
             }
+            zis.closeEntry();
 
         }
 
+    }
+
     // protect zip slip attack
-    private Path zipSlipProtect(ZipEntry zipEntry, Path targetDir)
-        throws IOException {
+    private Path zipSlipProtect(ZipEntry zipEntry, Path targetDir) throws IOException {
 
         // test zip slip vulnerability
         // Path targetDirResolved = targetDir.resolve("../../" + zipEntry.getName());
@@ -192,15 +197,15 @@ public class UnzipUtility {
 
         return normalizePath;
     }
-    
-    public void openWorkspace(){
+
+    public void openWorkspace() {
         //Check if the feature supported on your platform
         if (Desktop.getDesktop().isSupported(Action.BROWSE)) {
-          //Open directory with browse_file_dir option
+            //Open directory with browse_file_dir option
             try {
                 Desktop.getDesktop().browse(Paths.get(folderName).toUri());
             } catch (IOException e) {
-            // TODO: Handle exception
+                // TODO: Handle exception
             }
         }
     }
